@@ -270,11 +270,58 @@ curl -i -X POST http://localhost:3000/films/1/avis \
 
 ---
 
+## 🔁 SC3 — Transactions, procédure stockée et trigger
+
+Migration MySQL pour un volume déjà existant :
+
+```bash
+docker exec -i cineclub-mysql mysql -uroot -pR00t!Cin3club2026 cineclub \
+  < docker/mysql/migrations/20260507-sc3-transactions.sql
+```
+
+Routes ajoutées :
+
+| Méthode | Route                  | Rôle |
+|---------|------------------------|------|
+| POST    | `/reservations`        | Crée une réservation dans une transaction MySQL |
+| POST    | `/seances/archive-old` | Appelle `sp_archive_old_seances` et retourne le nombre archivé |
+
+Tests rapides :
+
+```bash
+curl -i -X POST http://localhost:3000/reservations \
+  -H 'Content-Type: application/json' \
+  -d '{"adherentId":1,"seanceId":1,"montantCents":1200}'
+
+curl -i -X POST http://localhost:3000/reservations \
+  -H 'Content-Type: application/json' \
+  -d '{"adherentId":2,"seanceId":1,"montantCents":-1}'
+
+curl -i -X POST http://localhost:3000/seances/archive-old \
+  -H 'Content-Type: application/json' \
+  -d '{"avant":"2026-01-01"}'
+```
+
+Le second appel force l'erreur de paiement demandee dans l'exercice : le `INSERT reservation`
+et le decrement de `places_restantes` sont annules par `ROLLBACK`.
+
+Audit trigger :
+
+```sql
+UPDATE paiement SET statut = 'PAYE' WHERE id = 1;
+SELECT * FROM audit_log WHERE table_name = 'paiement';
+```
+
+Un `UPDATE paiement SET statut = statut WHERE id = 1` ne doit pas ajouter de ligne
+dans `audit_log`.
+
+---
+
 ## ✅ Livrable
 
 ```bash
 git add .
-git commit -m "feat: CP8 SC2 CRUD sécurisé SQL + NoSQL"
+git commit -m "feat: CP8 SC3 transactions + procédure + trigger"
 git push
 ```
 

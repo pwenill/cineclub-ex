@@ -15,7 +15,7 @@
  * ------------------------------------------------------------------
  */
 
-import mysql, { Pool, PoolOptions } from 'mysql2/promise';
+import mysql, { Pool, PoolConnection, PoolOptions } from 'mysql2/promise';
 
 /**
  * Récupère une variable d'environnement obligatoire.
@@ -66,6 +66,29 @@ export function getPool(): Pool {
     poolInstance = mysql.createPool(buildPoolOptions());
   }
   return poolInstance;
+}
+
+export async function withTransaction<T>(
+  fn: (connection: PoolConnection) => Promise<T>,
+): Promise<T> {
+  const connection = await getPool().getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const result = await fn(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    try {
+      await connection.rollback();
+    } catch (rollbackError) {
+      // eslint-disable-next-line no-console
+      console.error('[mysql] Rollback impossible :', rollbackError);
+    }
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 /**
