@@ -315,6 +315,27 @@ SELECT * FROM audit_log WHERE table_name = 'paiement';
 Un `UPDATE paiement SET statut = statut WHERE id = 1` ne doit pas ajouter de ligne
 dans `audit_log`.
 
+### Bonus SC3 — verrouillage optimiste
+
+La migration ajoute aussi `seance.version INT NOT NULL DEFAULT 0`.
+
+La reservation utilise maintenant le pattern optimiste :
+
+```sql
+SELECT places_restantes, version
+FROM seance
+WHERE id = ?;
+
+UPDATE seance
+SET places_restantes = places_restantes - 1,
+    version = version + 1
+WHERE id = ?
+  AND version = ?;
+```
+
+Si `affectedRows = 0`, le service leve un `ConflictError`. Le controleur retente
+jusqu'a 3 fois, puis renvoie HTTP 409 si le conflit persiste.
+
 ---
 
 ## ✅ Livrable

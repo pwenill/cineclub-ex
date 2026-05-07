@@ -38,6 +38,12 @@ CALL sc3_add_column_if_missing(
   '`archived_at` DATETIME NULL AFTER `places_restantes`'
 );
 
+CALL sc3_add_column_if_missing(
+  'seance',
+  'version',
+  '`version` INT NOT NULL DEFAULT 0 AFTER `archived_at`'
+);
+
 DROP PROCEDURE IF EXISTS sc3_add_column_if_missing;
 
 UPDATE seance se

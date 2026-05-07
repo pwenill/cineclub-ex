@@ -4,6 +4,7 @@ import { isHttpParseError } from '../helpers/httpParseError';
 import { DuplicateAdherentEmailError } from '../repositories/AdherentRepository';
 import {
   AdherentNotFoundError,
+  ConflictError,
   DuplicateReservationError,
   InvalidPaymentAmountError,
   NotEnoughSeatsError,
@@ -26,7 +27,11 @@ export function errorMiddleware(
     return;
   }
 
-  if (err instanceof NotEnoughSeatsError || err instanceof DuplicateReservationError) {
+  if (
+    err instanceof ConflictError ||
+    err instanceof NotEnoughSeatsError ||
+    err instanceof DuplicateReservationError
+  ) {
     res.status(409).json({ message: err.message });
     return;
   }

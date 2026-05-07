@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS seance (
   prix_ttc    DECIMAL(6,2) NOT NULL,
   places_restantes SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   archived_at DATETIME NULL,
+  version     INT NOT NULL DEFAULT 0,
   CONSTRAINT fk_seance_film  FOREIGN KEY (film_id)  REFERENCES film(id)  ON DELETE RESTRICT,
   CONSTRAINT fk_seance_salle FOREIGN KEY (salle_id) REFERENCES salle(id) ON DELETE RESTRICT,
   INDEX idx_seance_debut (debut_at)

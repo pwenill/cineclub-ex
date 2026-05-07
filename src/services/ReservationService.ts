@@ -6,9 +6,10 @@ interface IdRow extends RowDataPacket {
   id: number;
 }
 
-interface SeanceForUpdateRow extends RowDataPacket {
+interface SeanceWithVersionRow extends RowDataPacket {
   id: number;
   places_restantes: number;
+  version: number;
 }
 
 interface MySqlDriverError extends Error {
@@ -35,6 +36,13 @@ export class NotEnoughSeatsError extends Error {
   constructor(seanceId: number) {
     super(`Plus de places disponibles pour la seance ${seanceId}.`);
     this.name = 'NotEnoughSeatsError';
+  }
+}
+
+export class ConflictError extends Error {
+  constructor() {
+    super('La seance a ete modifiee par une autre transaction.');
+    this.name = 'ConflictError';
   }
 }
 
@@ -75,12 +83,11 @@ export class ReservationService {
         throw new AdherentNotFoundError(adherentId);
       }
 
-      const [seanceRows] = await connection.execute<SeanceForUpdateRow[]>(
-        `SELECT id, places_restantes
+      const [seanceRows] = await connection.execute<SeanceWithVersionRow[]>(
+        `SELECT id, places_restantes, version
            FROM seance
           WHERE id = ?
-            AND archived_at IS NULL
-          FOR UPDATE`,
+            AND archived_at IS NULL`,
         [seanceId],
       );
       const seance = seanceRows[0];
@@ -89,6 +96,20 @@ export class ReservationService {
       }
       if (seance.places_restantes < 1) {
         throw new NotEnoughSeatsError(seanceId);
+      }
+
+      const [updateResult] = await connection.execute<ResultSetHeader>(
+        `UPDATE seance
+            SET places_restantes = places_restantes - 1,
+                version = version + 1
+          WHERE id = ?
+            AND version = ?
+            AND places_restantes > 0
+            AND archived_at IS NULL`,
+        [seanceId, seance.version],
+      );
+      if (updateResult.affectedRows === 0) {
+        throw new ConflictError();
       }
 
       let reservationId: number;
@@ -104,17 +125,6 @@ export class ReservationService {
           throw new DuplicateReservationError(adherentId, seanceId);
         }
         throw error;
-      }
-
-      const [updateResult] = await connection.execute<ResultSetHeader>(
-        `UPDATE seance
-            SET places_restantes = places_restantes - 1
-          WHERE id = ?
-            AND places_restantes > 0`,
-        [seanceId],
-      );
-      if (updateResult.affectedRows === 0) {
-        throw new NotEnoughSeatsError(seanceId);
       }
 
       try {
