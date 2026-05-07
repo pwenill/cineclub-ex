@@ -1,0 +1,144 @@
+# ==============================================================================
+# docker-compose.yml — CinéClub Réunion (CP8 SC1)
+# ------------------------------------------------------------------------------
+# 3 services + 1 IHM Web :
+#   - mysql         : SGBD relationnel (port 3306)
+#   - phpmyadmin    : IHM web pour MySQL (http://localhost:8080)
+#   - mongodb       : SGBD documentaire (port 27017)
+#   - mongo-express : IHM web pour MongoDB (http://localhost:8081) — optionnel
+#
+# Lancement :
+#   docker compose up -d
+#
+# Arrêt :
+#   docker compose down            # conserve les données
+#   docker compose down -v         # supprime aussi les volumes (reset complet)
+# ==============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # MySQL 8 — SGBD relationnel
+  # ---------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: cineclub-mysql
+    restart: unless-stopped
+    environment:
+      # Compte root (administration uniquement, jamais utilisé par l'app Node)
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-R00t!Cin3club2026}
+      # La base créée automatiquement au 1er démarrage
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-cineclub}
+      # Compte applicatif créé par le script d'init (voir ./docker/mysql/init/)
+      MYSQL_USER: ${MYSQL_USER:-cineclub_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Cin3club!App2026}
+    ports:
+      - "3306:3306"
+    volumes:
+      # Persistance des données — survit à docker compose down
+      - mysql_data:/var/lib/mysql
+      # Scripts d'init (*.sql, *.sh) exécutés UNIQUEMENT au 1er démarrage
+      # (quand le volume est vide). Pour relancer : docker compose down -v.
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --default-authentication-plugin=caching_sha2_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-R00t!Cin3club2026}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - cineclub-net
+
+  # ---------------------------------------------------------------------------
+  # phpMyAdmin — IHM web pour MySQL
+  # ---------------------------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cineclub-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql                 # nom du service MySQL sur le réseau Docker
+      PMA_PORT: 3306
+      # On peut se connecter en root OU en cineclub_app via le formulaire.
+      # PMA_USER / PMA_PASSWORD pré-remplissent le formulaire mais restent modifiables.
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy    # attend que MySQL soit réellement prêt
+    networks:
+      - cineclub-net
+
+  # ---------------------------------------------------------------------------
+  # MongoDB 7 — SGBD documentaire
+  # ---------------------------------------------------------------------------
+  mongodb:
+    image: mongo:7
+    container_name: cineclub-mongo
+    restart: unless-stopped
+    environment:
+      # Compte root Mongo (administration uniquement)
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-R00t!Cin3club2026}
+      # Base cible pour le script d'init (voir ./docker/mongo/init/)
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-cineclub}
+      # Variables utilisées dans le script d'init pour créer cineclub_app
+      MONGO_APP_USER: ${MONGO_APP_USER:-cineclub_app}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:-Cin3club!App2026}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - cineclub-net
+
+  # ---------------------------------------------------------------------------
+  # Mongo Express — IHM web pour MongoDB (équivalent phpMyAdmin)
+  # ---------------------------------------------------------------------------
+  mongo-express:
+    image: mongo-express:latest
+    container_name: cineclub-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER:-root}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-R00t!Cin3club2026}
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      # Basic auth pour l'IHM web elle-même (http://localhost:8081)
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_PASSWORD:-admin}
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - cineclub-net
+
+# ==============================================================================
+# Volumes nommés — gérés par Docker, persistent au-delà du conteneur
+# ==============================================================================
+volumes:
+  mysql_data:
+    name: cineclub_mysql_data
+  mongo_data:
+    name: cineclub_mongo_data
+
+# ==============================================================================
+# Réseau interne — les services se joignent par nom de service (mysql, mongodb)
+# ==============================================================================
+networks:
+  cineclub-net:
+    name: cineclub-net
+    driver: bridge
