@@ -36,10 +36,6 @@ export class AvisController {
     });
   };
 
-  findAllFilm = async(req: Request, res: Response): Promise<void> => {
-    // const films = await 
-  }
-
   findAllByFilm = async (req: Request, res: Response): Promise<void> => {
     const parsedParams = FilmIdParamSchema.safeParse(req.params);
     if (!parsedParams.success) {

@@ -1,3 +1,12 @@
+export interface Film {
+  id: number;
+  titre: string;
+  realisateur: string;
+  annee: number;
+  dureeMinutes: number;
+  createdAt: Date;
+}
+
 export interface FilmSummary {
   id: number;
   titre: string;

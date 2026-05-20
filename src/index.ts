@@ -20,6 +20,7 @@ import express from 'express';
 
 import { AdherentController } from './controllers/AdherentController';
 import { AvisController } from './controllers/AvisController';
+import { FilmController } from './controllers/FilmController';
 import { HealthController } from './controllers/HealthController';
 import { ReservationController } from './controllers/ReservationController';
 import { SeanceController } from './controllers/SeanceController';
@@ -31,6 +32,7 @@ import { rejectMongoOperators } from './middlewares/rejectMongoOperators.middlew
 import { MySQLAdherentRepository } from './repositories/AdherentRepository';
 import { MongooseAvisRepository } from './repositories/AvisRepository';
 import { CachedFilmRepository } from './repositories/CachedFilmRepository';
+import { MySQLFilmRepository } from './repositories/FilmRepository';
 import { createAdherentRouter } from './routes/adherent.routes';
 import { createAvisRouter } from './routes/avis.routes';
 import { createFilmRouter } from './routes/film.routes';
@@ -73,6 +75,7 @@ async function bootstrap(): Promise<void> {
   app.use(rejectMongoOperators);
 
   const adherentRepository = new MySQLAdherentRepository();
+  const filmRepository = new MySQLFilmRepository();
   const avisRepository = new MongooseAvisRepository();
   const cachedFilmRepository = new CachedFilmRepository(avisRepository);
   const reservationService = new ReservationService();
@@ -80,6 +83,7 @@ async function bootstrap(): Promise<void> {
 
   const healthController = new HealthController();
   const adherentController = new AdherentController(adherentRepository);
+  const filmController = new FilmController(filmRepository);
   const avisController = new AvisController(avisRepository, cachedFilmRepository);
   const reservationController = new ReservationController(reservationService);
   const seanceController = new SeanceController(seanceArchiveService);
@@ -87,7 +91,7 @@ async function bootstrap(): Promise<void> {
 
   app.use('/health', createHealthRouter(healthController));
   app.use('/adherents', createAdherentRouter(adherentController));
-  app.use('/films', createFilmRouter(avisController));
+  app.use('/films', createFilmRouter(filmController, avisController));
   app.use('/avis', createAvisRouter(avisController));
   app.use('/reservations', createReservationRouter(reservationController));
   app.use('/seances', createSeanceRouter(seanceController));
