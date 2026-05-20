@@ -37,7 +37,6 @@ export class AdherentController {
 
   create = async (req: Request, res: Response): Promise<void> => {
     // eslint-disable-next-line no-console
-    console.log(req.body);
     const parsedBody = CreateAdherentSchema.safeParse(req.body);
     if (!parsedBody.success) {
       sendZodError(res, parsedBody.error);

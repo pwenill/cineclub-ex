@@ -25,10 +25,12 @@ import { ReservationController } from './controllers/ReservationController';
 import { SeanceController } from './controllers/SeanceController';
 import { testConnection as testMySQL, closePool } from './infra/mysql';
 import { connectMongo, closeMongo, pingMongo } from './infra/mongodb';
+import { closeRedis } from './infra/redis';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { rejectMongoOperators } from './middlewares/rejectMongoOperators.middleware';
 import { MySQLAdherentRepository } from './repositories/AdherentRepository';
 import { MongooseAvisRepository } from './repositories/AvisRepository';
+import { CachedFilmRepository } from './repositories/CachedFilmRepository';
 import { createAdherentRouter } from './routes/adherent.routes';
 import { createAvisRouter } from './routes/avis.routes';
 import { createFilmRouter } from './routes/film.routes';
@@ -65,20 +67,23 @@ async function bootstrap(): Promise<void> {
 
   // --- 3. Démarrage Express ---
   const app = express();
+ 
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(rejectMongoOperators);
 
   const adherentRepository = new MySQLAdherentRepository();
   const avisRepository = new MongooseAvisRepository();
+  const cachedFilmRepository = new CachedFilmRepository(avisRepository);
   const reservationService = new ReservationService();
   const seanceArchiveService = new SeanceArchiveService();
 
   const healthController = new HealthController();
   const adherentController = new AdherentController(adherentRepository);
-  const avisController = new AvisController(avisRepository);
+  const avisController = new AvisController(avisRepository, cachedFilmRepository);
   const reservationController = new ReservationController(reservationService);
   const seanceController = new SeanceController(seanceArchiveService);
+
 
   app.use('/health', createHealthRouter(healthController));
   app.use('/adherents', createAdherentRouter(adherentController));
@@ -101,6 +106,7 @@ async function bootstrap(): Promise<void> {
     // eslint-disable-next-line no-console
     console.log(`\n[${signal}] Arrêt en cours...`);
     server.close();
+    await closeRedis();
     await closePool();
     await closeMongo();
     process.exit(0);

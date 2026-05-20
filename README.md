@@ -4,7 +4,8 @@ Back-end Node.js / TypeScript qui héberge la **DAL (Data Access Layer)** du pro
 Il expose deux connexions d'infrastructure :
 
 - **MySQL** (SGBD relationnel) — données transactionnelles : films, séances, réservations, utilisateurs.
-- **MongoDB** (SGBD NoSQL) — données documentaires : avis, logs, contenus riches, sessions.
+- **MongoDB** (SGBD NoSQL) — données documentaires : avis, logs, contenus riches.
+- **Redis** (cache clé-valeur) — top films, sessions et rate limiting.
 
 ---
 
@@ -14,7 +15,7 @@ Il expose deux connexions d'infrastructure :
 cineclub-backend/
 ├── package.json
 ├── tsconfig.json           # strict: true
-├── docker-compose.yml      # MySQL + phpMyAdmin + MongoDB + Mongo Express
+├── docker-compose.yml      # MySQL + phpMyAdmin + MongoDB + Mongo Express + Redis
 ├── docker/
 │   ├── mysql/init/         # Scripts SQL exécutés au 1er démarrage
 │   └── mongo/init/         # Script JS exécuté au 1er démarrage
@@ -44,7 +45,7 @@ avec Docker Compose :
 # 1. Copier les variables d'environnement
 cp .env.example .env
 
-# 2. Lancer MySQL + phpMyAdmin + MongoDB + Mongo Express
+# 2. Lancer MySQL + phpMyAdmin + MongoDB + Mongo Express + Redis
 docker compose up -d
 
 # 3. Vérifier que tout est up et healthy
@@ -59,18 +60,21 @@ docker compose ps
 | phpMyAdmin      | http://localhost:8080                   | saisir `cineclub_app` ou `root`       |
 | MongoDB         | `localhost:27017`                       | `cineclub_app` / `Cin3club!App2026`   |
 | Mongo Express   | http://localhost:8081                   | `admin` / `admin` (basic auth IHM)    |
+| Redis           | `localhost:6379`                        | aucun mot de passe en dev             |
 
 ### Commandes utiles
 
 ```bash
 docker compose logs -f mysql          # suivre les logs MySQL
 docker compose logs -f mongodb        # suivre les logs Mongo
+docker compose logs -f redis           # suivre les logs Redis
 docker compose ps                      # état des conteneurs
 docker compose restart mysql           # redémarrer un service
 docker compose down                    # arrêter (données conservées)
 docker compose down -v                 # arrêter + SUPPRIMER les volumes (reset)
 docker compose exec mysql mysql -ucineclub_app -p cineclub
 docker compose exec mongodb mongosh -u cineclub_app -p --authenticationDatabase cineclub
+docker compose exec redis redis-cli ping
 ```
 
 ### Ce que font les scripts d'init
@@ -83,8 +87,11 @@ Au **premier démarrage seulement** (volume vide), Docker exécute :
   - Crée les tables `film`, `salle`, `seance` + jeu de données démo
 - **`docker/mongo/init/01-init-cineclub.js`** :
   - Crée `cineclub_app` avec rôle `readWrite` sur la base `cineclub`
-  - Crée la collection `reviews` avec un `$jsonSchema` validator + index
-  - Insère 2 documents de démo
+  - Crée les collections `films` et `avis` avec `$jsonSchema` validator + index
+  - Insère les documents de démo nécessaires à `populate()` et `$lookup`
+- **Redis** :
+  - Persiste les données dans le volume `cineclub_redis_data`
+  - Sert au cache-aside de `GET /films/top-rated?days=30`
 
 > ⚠️ Pour que les scripts soient ré-exécutés, il faut repartir d'un volume
 > vide : `docker compose down -v && docker compose up -d`.

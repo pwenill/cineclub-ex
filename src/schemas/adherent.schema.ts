@@ -1,7 +1,24 @@
 import { z } from 'zod';
 
-const RequiredNameSchema = z.string().trim().min(1).max(80);
-const EmailSchema = z.string().trim().email().max(160).transform((email) => email.toLowerCase());
+const RequiredNameSchema = z
+  .string({
+    required_error: 'Ce champ est obligatoire.',
+    invalid_type_error: 'Ce champ doit etre une chaine de caracteres.',
+  })
+  .trim()
+  .min(1, 'Ce champ est obligatoire.')
+  .max(80, 'Ce champ ne doit pas depasser 80 caracteres.');
+
+const EmailSchema = z
+  .string({
+    required_error: 'L email est obligatoire.',
+    invalid_type_error: 'L email doit etre une chaine de caracteres.',
+  })
+  .trim()
+  .email('L email doit etre valide.')
+  .max(160, 'L email ne doit pas depasser 160 caracteres.')
+  .transform((email) => email.toLowerCase());
+
 const TelephoneSchema = z.string().trim().regex(/^0[1-9]\d{8}$/, {
   message: 'Le telephone doit contenir 10 chiffres et commencer par 0.',
 });

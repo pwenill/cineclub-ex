@@ -12,6 +12,13 @@ export const AvisIdParamSchema = z.object({
 
 export const AvisStatutSchema = z.enum(['publie', 'modere', 'masque']);
 
+export const TopRatedFilmsQuerySchema = z
+  .object({
+    days: z.coerce.number().int().positive().max(365).default(30),
+    limit: z.coerce.number().int().positive().max(50).default(10),
+  })
+  .strict();
+
 const AvisPhotoSchema = z
   .object({
     url: z.string().trim().url().max(500),
@@ -46,3 +53,4 @@ export const UpdateAvisSchema = z
 export type CreateAvisBodyDTO = z.infer<typeof CreateAvisBodySchema>;
 export type CreateAvisDTO = CreateAvisBodyDTO & { filmId: number };
 export type UpdateAvisDTO = z.infer<typeof UpdateAvisSchema>;
+export type TopRatedFilmsQueryDTO = z.infer<typeof TopRatedFilmsQuerySchema>;

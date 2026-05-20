@@ -1,17 +1,44 @@
 import { Request, Response } from 'express';
 
 import { toAvisResponseDTO } from '../dtos/avis.dto';
+import { toFilmStatsResponseDTO } from '../dtos/film.dto';
 import { sendZodError } from '../helpers/zodResponse';
+import { CachedFilmRepository } from '../repositories/CachedFilmRepository';
 import { AvisRepository } from '../repositories/AvisRepository';
 import {
   AvisIdParamSchema,
   CreateAvisBodySchema,
   FilmIdParamSchema,
+  TopRatedFilmsQuerySchema,
   UpdateAvisSchema,
 } from '../schemas/avis.schema';
 
 export class AvisController {
-  constructor(private readonly avisRepository: AvisRepository) {}
+  constructor(
+    private readonly avisRepository: AvisRepository,
+    private readonly cachedFilmRepository: CachedFilmRepository,
+  ) {}
+
+  topRatedFilms = async (req: Request, res: Response): Promise<void> => {
+    const parsedQuery = TopRatedFilmsQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      sendZodError(res, parsedQuery.error);
+      return;
+    }
+
+    const films = await this.cachedFilmRepository.getTopFilms(
+      parsedQuery.data.days,
+      parsedQuery.data.limit,
+    );
+
+    res.json({
+      data: films.map(toFilmStatsResponseDTO),
+    });
+  };
+
+  findAllFilm = async(req: Request, res: Response): Promise<void> => {
+    // const films = await 
+  }
 
   findAllByFilm = async (req: Request, res: Response): Promise<void> => {
     const parsedParams = FilmIdParamSchema.safeParse(req.params);

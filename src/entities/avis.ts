@@ -9,10 +9,16 @@ export interface Avis {
   id: string;
   adherentId: number;
   filmId: number;
+  film?: {
+    id: number;
+    titre: string;
+    annee: number;
+  };
   note: number;
   commentaire?: string;
   tags: string[];
   photos: AvisPhoto[];
+  slug?: string;
   statut: AvisStatut;
   createdAt: Date;
   updatedAt: Date;

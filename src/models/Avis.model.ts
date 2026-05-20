@@ -1,4 +1,24 @@
 import { Schema, model } from 'mongoose';
+import slugify from 'slugify';
+
+import { FilmModel } from './Film.model';
+
+export interface AvisDocument {
+  _id: Schema.Types.ObjectId;
+  adherentId: number;
+  filmId: number;
+  note: number;
+  commentaire?: string;
+  tags?: string[];
+  photos?: Array<{
+    url: string;
+    legende?: string;
+  }>;
+  slug?: string;
+  statut: 'publie' | 'modere' | 'masque';
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const avisPhotoSchema = new Schema(
   {
@@ -18,7 +38,7 @@ const avisPhotoSchema = new Schema(
   { _id: false, strict: true },
 );
 
-const avisSchema = new Schema(
+const avisSchema = new Schema<AvisDocument>(
   {
     adherentId: {
       type: Number,
@@ -28,6 +48,7 @@ const avisSchema = new Schema(
     },
     filmId: {
       type: Number,
+      ref: 'Film',
       required: true,
       min: 1,
       index: true,
@@ -51,6 +72,12 @@ const avisSchema = new Schema(
       },
     ],
     photos: [avisPhotoSchema],
+    slug: {
+      type: String,
+      trim: true,
+      maxlength: 255,
+      index: true,
+    },
     statut: {
       type: String,
       enum: ['publie', 'modere', 'masque'],
@@ -65,6 +92,22 @@ const avisSchema = new Schema(
   },
 );
 
-avisSchema.index({ filmId: 1, createdAt: -1 });
+avisSchema.pre('save', async function setFilmSlug(next) {
+  if (!this.isNew && !this.isModified('filmId')) {
+    return next();
+  }
 
-export const AvisModel = model('Avis', avisSchema);
+  const film = await FilmModel.findById(this.filmId).select('titre').lean<{ titre: string } | null>();
+  if (film?.titre) {
+    this.slug = slugify(film.titre, {
+      lower: true,
+      strict: true,
+    });
+  }
+
+  return next();
+});
+
+avisSchema.index({ filmId: 1, statut: 1, createdAt: -1 });
+
+export const AvisModel = model<AvisDocument>('Avis', avisSchema);
