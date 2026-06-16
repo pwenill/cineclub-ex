@@ -26,6 +26,7 @@ interface MySqlDriverError extends Error {
 export interface AdherentRepository {
   findAll(): Promise<Adherent[]>;
   findById(id: number): Promise<Adherent | null>;
+  findByEmail(email: string): Promise<Adherent[]>;
   create(data: CreateAdherentDTO): Promise<Adherent>;
   update(id: number, data: UpdateAdherentDTO): Promise<Adherent | null>;
   delete(id: number): Promise<boolean>;
@@ -90,6 +91,18 @@ export class MySQLAdherentRepository implements AdherentRepository {
 
     const row = rows[0];
     return row ? toAdherent(row) : null;
+  }
+
+  async findByEmail(email: string): Promise<Adherent[]> {
+    const [rows] = await getPool().execute<AdherentRow[]>(
+      `SELECT id, nom, prenom, email, telephone, actif,
+              date_inscription, created_at, updated_at
+         FROM adherent
+        WHERE email = ?`,
+      [email],
+    );
+
+    return rows.map(toAdherent);
   }
 
   async create(data: CreateAdherentDTO): Promise<Adherent> {

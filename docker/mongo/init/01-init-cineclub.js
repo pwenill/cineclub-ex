@@ -51,11 +51,12 @@ db.createCollection('films', {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['_id', 'titre', 'annee'],
+      required: ['_id', 'titre', 'annee', 'genre'],
       properties: {
         _id:   { bsonType: 'int', minimum: 1, description: 'id du film dans MySQL' },
         titre: { bsonType: 'string', maxLength: 255 },
-        annee: { bsonType: 'int', minimum: 1888, maximum: 2100 },
+        annee: { bsonType: 'int', minimum: 1895, maximum: 2100 },
+        genre: { enum: ['action', 'comedie', 'drame', 'science-fiction', 'thriller', 'documentaire'] },
       },
     },
   },
@@ -111,9 +112,14 @@ db.avis.createIndex({ adherentId: 1 });
 // Jeu de données de démo
 const now = new Date();
 db.films.insertMany([
-  { _id: NumberInt(1), titre: 'Le Fabuleux Destin d\'Amélie Poulain', annee: NumberInt(2001) },
-  { _id: NumberInt(2), titre: 'Parasite', annee: NumberInt(2019) },
-  { _id: NumberInt(3), titre: 'Interstellar', annee: NumberInt(2014) },
+  {
+    _id: NumberInt(1),
+    titre: 'Le Fabuleux Destin d\'Amélie Poulain',
+    annee: NumberInt(2001),
+    genre: 'comedie',
+  },
+  { _id: NumberInt(2), titre: 'Parasite', annee: NumberInt(2019), genre: 'thriller' },
+  { _id: NumberInt(3), titre: 'Interstellar', annee: NumberInt(2014), genre: 'science-fiction' },
 ]);
 
 db.avis.insertMany([

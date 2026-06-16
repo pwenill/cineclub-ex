@@ -4,6 +4,7 @@ export interface FilmDocument {
   _id: number;
   titre: string;
   annee: number;
+  genre: 'action' | 'comedie' | 'drame' | 'science-fiction' | 'thriller' | 'documentaire';
   affiche?: string;
 }
 
@@ -23,8 +24,15 @@ const filmSchema = new Schema<FilmDocument>(
     annee: {
       type: Number,
       required: true,
-      min: 1888,
+      min: 1895,
       max: 2100,
+    },
+    genre: {
+      type: String,
+      required: true,
+      enum: ['action', 'comedie', 'drame', 'science-fiction', 'thriller', 'documentaire'],
+      trim: true,
+      lowercase: true,
     },
     affiche: {
       type: String,

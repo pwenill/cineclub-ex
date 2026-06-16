@@ -16,31 +16,11 @@
  */
 
 import 'dotenv/config';
-import express from 'express';
 
-import { AdherentController } from './controllers/AdherentController';
-import { AvisController } from './controllers/AvisController';
-import { FilmController } from './controllers/FilmController';
-import { HealthController } from './controllers/HealthController';
-import { ReservationController } from './controllers/ReservationController';
-import { SeanceController } from './controllers/SeanceController';
+import { createApp } from './app';
 import { testConnection as testMySQL, closePool } from './infra/mysql';
 import { connectMongo, closeMongo, pingMongo } from './infra/mongodb';
 import { closeRedis } from './infra/redis';
-import { errorMiddleware } from './middlewares/error.middleware';
-import { rejectMongoOperators } from './middlewares/rejectMongoOperators.middleware';
-import { MySQLAdherentRepository } from './repositories/AdherentRepository';
-import { MongooseAvisRepository } from './repositories/AvisRepository';
-import { CachedFilmRepository } from './repositories/CachedFilmRepository';
-import { MySQLFilmRepository } from './repositories/FilmRepository';
-import { createAdherentRouter } from './routes/adherent.routes';
-import { createAvisRouter } from './routes/avis.routes';
-import { createFilmRouter } from './routes/film.routes';
-import { createHealthRouter } from './routes/health.routes';
-import { createReservationRouter } from './routes/reservation.routes';
-import { createSeanceRouter } from './routes/seance.routes';
-import { ReservationService } from './services/ReservationService';
-import { SeanceArchiveService } from './services/SeanceArchiveService';
 
 async function bootstrap(): Promise<void> {
   // eslint-disable-next-line no-console
@@ -68,35 +48,7 @@ async function bootstrap(): Promise<void> {
   }
 
   // --- 3. Démarrage Express ---
-  const app = express();
- 
-  app.use(express.json({ limit: '1mb' }));
-  app.use(express.urlencoded({ extended: false, limit: '1mb' }));
-  app.use(rejectMongoOperators);
-
-  const adherentRepository = new MySQLAdherentRepository();
-  const filmRepository = new MySQLFilmRepository();
-  const avisRepository = new MongooseAvisRepository();
-  const cachedFilmRepository = new CachedFilmRepository(avisRepository);
-  const reservationService = new ReservationService();
-  const seanceArchiveService = new SeanceArchiveService();
-
-  const healthController = new HealthController();
-  const adherentController = new AdherentController(adherentRepository);
-  const filmController = new FilmController(filmRepository);
-  const avisController = new AvisController(avisRepository, cachedFilmRepository);
-  const reservationController = new ReservationController(reservationService);
-  const seanceController = new SeanceController(seanceArchiveService);
-
-
-  app.use('/health', createHealthRouter(healthController));
-  app.use('/adherents', createAdherentRouter(adherentController));
-  app.use('/films', createFilmRouter(filmController, avisController));
-  app.use('/avis', createAvisRouter(avisController));
-  app.use('/reservations', createReservationRouter(reservationController));
-  app.use('/seances', createSeanceRouter(seanceController));
-
-  app.use(errorMiddleware);
+  const app = createApp();
 
   const port = Number(process.env.PORT ?? 3000);
   const server = app.listen(port, () => {
