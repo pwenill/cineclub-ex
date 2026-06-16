@@ -38,24 +38,28 @@ cineclub-backend/
 
 ## 🐳 Démarrage avec Docker (recommandé)
 
-Plutôt que d'installer MySQL et MongoDB sur ta machine, lance toute la stack
-avec Docker Compose :
+Plutôt que d'installer Node.js, MySQL et MongoDB sur ta machine, lance toute la
+stack avec Docker Compose :
 
 ```bash
 # 1. Copier les variables d'environnement
 cp .env.example .env
 
-# 2. Lancer MySQL + phpMyAdmin + MongoDB + Mongo Express + Redis
-docker compose up -d
+# 2. Construire et lancer API + MySQL + phpMyAdmin + MongoDB + Mongo Express + Redis
+docker compose up -d --build
 
 # 3. Vérifier que tout est up et healthy
 docker compose ps
+
+# 4. Vérifier l'API
+curl -i http://localhost:3000/health
 ```
 
 ### Services disponibles
 
 | Service         | URL / Port                              | Identifiants par défaut               |
 |-----------------|-----------------------------------------|---------------------------------------|
+| API Express     | http://localhost:3000                   | -                                     |
 | MySQL           | `localhost:3306`                        | `cineclub_app` / `Cin3club!App2026`   |
 | phpMyAdmin      | http://localhost:8080                   | saisir `cineclub_app` ou `root`       |
 | MongoDB         | `localhost:27017`                       | `cineclub_app` / `Cin3club!App2026`   |
@@ -65,11 +69,12 @@ docker compose ps
 ### Commandes utiles
 
 ```bash
+docker compose logs -f api            # suivre les logs API
 docker compose logs -f mysql          # suivre les logs MySQL
 docker compose logs -f mongodb        # suivre les logs Mongo
 docker compose logs -f redis           # suivre les logs Redis
 docker compose ps                      # état des conteneurs
-docker compose restart mysql           # redémarrer un service
+docker compose restart api             # redémarrer l'API
 docker compose down                    # arrêter (données conservées)
 docker compose down -v                 # arrêter + SUPPRIMER les volumes (reset)
 docker compose exec mysql mysql -ucineclub_app -p cineclub
@@ -236,8 +241,7 @@ Routes ajoutées :
 Tests rapides :
 
 ```bash
-npm run build
-npm run dev
+docker compose up -d --build
 
 curl -i http://localhost:3000/health
 curl -i http://localhost:3000/adherents

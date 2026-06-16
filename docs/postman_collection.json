@@ -1,0 +1,398 @@
+{
+  "info": {
+    "_postman_id": "9bbcc6e6-7644-4f0d-9b6a-7f8ec1dc69d1",
+    "name": "CineClub API",
+    "description": "Collection Postman prete a l'emploi pour les routes du back-end CineClub. Importer aussi docs/postman_environment.json pour disposer de baseUrl, jwtToken et des ids d'exemple.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adherentId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "filmId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "avisId",
+      "value": "665f1c2a4c4f9f0012a0abcd",
+      "type": "string"
+    },
+    {
+      "key": "seanceId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reservationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Verifier l'etat de l'API et de ses dependances."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Adherents",
+      "item": [
+        {
+          "name": "GET /adherents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/adherents",
+            "description": "Lister les adherents."
+          }
+        },
+        {
+          "name": "POST /adherents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('adherentId', String(json.data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Payet\",\n  \"prenom\": \"Marie\",\n  \"email\": \"marie.payet@example.com\",\n  \"telephone\": \"0692123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/adherents",
+            "description": "Creer un adherent. Le test Postman sauvegarde data.id dans adherentId."
+          }
+        },
+        {
+          "name": "GET /adherents/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/adherents/{{adherentId}}",
+            "description": "Recuperer un adherent par id."
+          }
+        },
+        {
+          "name": "PUT /adherents/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telephone\": \"0692987654\",\n  \"actif\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/adherents/{{adherentId}}",
+            "description": "Mettre a jour un adherent."
+          }
+        },
+        {
+          "name": "DELETE /adherents/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/adherents/{{adherentId}}",
+            "description": "Supprimer un adherent."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Films",
+      "item": [
+        {
+          "name": "GET /films",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/films",
+            "description": "Lister les films."
+          }
+        },
+        {
+          "name": "GET /films/top-rated",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/films/top-rated?days=30&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "films",
+                "top-rated"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30",
+                  "description": "Fenetre d'analyse en jours, entre 1 et 365."
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Nombre maximal de films, entre 1 et 50."
+                }
+              ]
+            },
+            "description": "Lister les films les mieux notes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Avis",
+      "item": [
+        {
+          "name": "GET /films/:id/avis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/films/{{filmId}}/avis",
+            "description": "Lister les avis publies d'un film."
+          }
+        },
+        {
+          "name": "POST /films/:id/avis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('avisId', String(json.data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adherentId\": {{adherentId}},\n  \"note\": 5,\n  \"commentaire\": \"Tres bonne seance.\",\n  \"tags\": [\"ambiance\", \"projection\"],\n  \"photos\": [\n    {\n      \"url\": \"https://example.com/photos/salle.jpg\",\n      \"legende\": \"Projection en plein air\"\n    }\n  ],\n  \"statut\": \"publie\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/films/{{filmId}}/avis",
+            "description": "Creer un avis pour un film. Le test Postman sauvegarde data.id dans avisId."
+          }
+        },
+        {
+          "name": "GET /avis/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/avis/{{avisId}}",
+            "description": "Recuperer un avis par ObjectId MongoDB."
+          }
+        },
+        {
+          "name": "PUT /avis/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": 4,\n  \"commentaire\": \"Avis mis a jour depuis Postman.\",\n  \"statut\": \"publie\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/avis/{{avisId}}",
+            "description": "Mettre a jour un avis."
+          }
+        },
+        {
+          "name": "DELETE /avis/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/avis/{{avisId}}",
+            "description": "Supprimer un avis."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "POST /reservations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('reservationId', String(json.data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adherentId\": {{adherentId}},\n  \"seanceId\": {{seanceId}},\n  \"montantCents\": 1200\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/reservations",
+            "description": "Creer une reservation. Le test Postman sauvegarde data.id dans reservationId."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seances",
+      "item": [
+        {
+          "name": "POST /seances/archive-old",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avant\": \"2026-06-16\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/seances/archive-old",
+            "description": "Archiver les seances anterieures a la date fournie."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{jwtToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "GET /admin/stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/stats",
+            "description": "Lire les statistiques admin. Renseigner jwtToken avec un JWT valide."
+          }
+        },
+        {
+          "name": "DELETE /admin/adherents/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/admin/adherents/{{adherentId}}",
+            "description": "Supprimer un adherent via la route admin. Necessite un JWT role admin."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -18,6 +18,41 @@
 
 services:
   # ---------------------------------------------------------------------------
+  # API Node.js / Express
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cineclub-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Le .env reste la source des credentials/ports.
+      # Dans Docker, l'API doit viser les noms de services du reseau Compose.
+      MYSQL_HOST: mysql
+      MONGO_URI: mongodb://${MONGO_APP_USER:-cineclub_app}:${MONGO_APP_PASSWORD:-Cin3club!App2026}@mongodb:27017/${MONGO_DB_NAME:-cineclub}?authSource=${MONGO_DB_NAME:-cineclub}
+      REDIS_HOST: redis
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const port=process.env.PORT||3000;fetch('http://127.0.0.1:'+port+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - cineclub-net
+
+  # ---------------------------------------------------------------------------
   # MySQL 8 — SGBD relationnel
   # ---------------------------------------------------------------------------
   mysql:
