@@ -1,0 +1,1414 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CineClub Reunion API",
+    "version": "1.0.0",
+    "description": "Documentation OpenAPI des routes du back-end CineClub Reunion."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Serveur courant"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Etat de l API"
+    },
+    {
+      "name": "Adherents",
+      "description": "Gestion des adherents"
+    },
+    {
+      "name": "Films",
+      "description": "Catalogue films et statistiques"
+    },
+    {
+      "name": "Avis",
+      "description": "Gestion des avis MongoDB"
+    },
+    {
+      "name": "Reservations",
+      "description": "Reservations et transactions SQL"
+    },
+    {
+      "name": "Seances",
+      "description": "Archivage des seances"
+    },
+    {
+      "name": "Admin",
+      "description": "Routes protegees par JWT"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Verifier l etat de l API",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Etat courant des dependances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adherents": {
+      "get": {
+        "tags": [
+          "Adherents"
+        ],
+        "summary": "Lister les adherents",
+        "operationId": "listAdherents",
+        "responses": {
+          "200": {
+            "description": "Liste des adherents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdherentListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Adherents"
+        ],
+        "summary": "Creer un adherent",
+        "operationId": "createAdherent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdherentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Adherent cree",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdherentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/adherents/{id}": {
+      "get": {
+        "tags": [
+          "Adherents"
+        ],
+        "summary": "Recuperer un adherent",
+        "operationId": "getAdherentById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/NumericId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Adherent trouve",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdherentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Adherents"
+        ],
+        "summary": "Mettre a jour un adherent",
+        "operationId": "updateAdherent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/NumericId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAdherentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Adherent mis a jour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdherentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Adherents"
+        ],
+        "summary": "Supprimer un adherent",
+        "operationId": "deleteAdherent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/NumericId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Adherent supprime"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/films": {
+      "get": {
+        "tags": [
+          "Films"
+        ],
+        "summary": "Lister les films",
+        "operationId": "listFilms",
+        "responses": {
+          "200": {
+            "description": "Liste des films",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/films/top-rated": {
+      "get": {
+        "tags": [
+          "Films"
+        ],
+        "summary": "Lister les films les mieux notes",
+        "operationId": "listTopRatedFilms",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DaysQuery"
+          },
+          {
+            "$ref": "#/components/parameters/LimitQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistiques des meilleurs films",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmStatsListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/films/{id}/avis": {
+      "get": {
+        "tags": [
+          "Avis"
+        ],
+        "summary": "Lister les avis d un film",
+        "operationId": "listAvisByFilm",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FilmId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des avis du film",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvisListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Avis"
+        ],
+        "summary": "Creer un avis pour un film",
+        "operationId": "createAvisForFilm",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FilmId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAvisInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Avis cree",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvisResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/avis/{id}": {
+      "get": {
+        "tags": [
+          "Avis"
+        ],
+        "summary": "Recuperer un avis",
+        "operationId": "getAvisById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avis trouve",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvisResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Avis"
+        ],
+        "summary": "Mettre a jour un avis",
+        "operationId": "updateAvis",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MongoId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAvisInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Avis mis a jour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvisResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Avis"
+        ],
+        "summary": "Supprimer un avis",
+        "operationId": "deleteAvis",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MongoId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Avis supprime"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "post": {
+        "tags": [
+          "Reservations"
+        ],
+        "summary": "Creer une reservation",
+        "operationId": "createReservation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReservationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation creee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/seances/archive-old": {
+      "post": {
+        "tags": [
+          "Seances"
+        ],
+        "summary": "Archiver les seances anciennes",
+        "operationId": "archiveOldSeances",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveOldSeancesInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nombre de seances archivees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchivedSeancesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Lire les statistiques admin",
+        "operationId": "getAdminStats",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statut de la route protegee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/admin/adherents/{id}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Supprimer un adherent en admin",
+        "operationId": "adminDeleteAdherent",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/NumericId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Adherent supprime"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "NumericId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Identifiant numerique positif",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "example": 1
+        }
+      },
+      "FilmId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Identifiant numerique du film",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "example": 1
+        }
+      },
+      "MongoId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Identifiant MongoDB ObjectId",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$",
+          "example": "665f1c2a4c4f9f0012a0abcd"
+        }
+      },
+      "DaysQuery": {
+        "name": "days",
+        "in": "query",
+        "required": false,
+        "description": "Fenetre d analyse en jours",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 30
+        }
+      },
+      "LimitQuery": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Nombre maximal de films retournes",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 10
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Donnees invalides",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Ressource introuvable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MessageError"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflit fonctionnel",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MessageError"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentification requise ou invalide",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MessageError"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Droits insuffisants",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MessageError"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Erreur interne serveur",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MessageError"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "MessageError": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Erreur interne serveur."
+          }
+        }
+      },
+      "ValidationErrorDetail": {
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "example": "email"
+          },
+          "message": {
+            "type": "string",
+            "example": "L email doit etre valide."
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "required": [
+          "error",
+          "message",
+          "details",
+          "errors"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Donnees invalides."
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationErrorDetail"
+            }
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "mysql",
+          "mongodb",
+          "timestamp"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "mysql": {
+            "type": "string",
+            "example": "connected"
+          },
+          "mongodb": {
+            "type": "string",
+            "example": "connected"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-16T08:00:00.000Z"
+          }
+        }
+      },
+      "Adherent": {
+        "type": "object",
+        "required": [
+          "id",
+          "nom",
+          "prenom",
+          "email",
+          "telephone",
+          "dateInscription"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "nom": {
+            "type": "string",
+            "maxLength": 80,
+            "example": "Payet"
+          },
+          "prenom": {
+            "type": "string",
+            "maxLength": 80,
+            "example": "Marie"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 160,
+            "example": "marie.payet@example.com"
+          },
+          "telephone": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^0[1-9]\\d{8}$",
+            "example": "0692123456"
+          },
+          "dateInscription": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAdherentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "nom",
+          "prenom",
+          "email"
+        ],
+        "properties": {
+          "nom": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "example": "Payet"
+          },
+          "prenom": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "example": "Marie"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 160,
+            "example": "marie.payet@example.com"
+          },
+          "telephone": {
+            "type": "string",
+            "pattern": "^0[1-9]\\d{8}$",
+            "example": "0692123456"
+          }
+        }
+      },
+      "UpdateAdherentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "nom": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "prenom": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 160
+          },
+          "telephone": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^0[1-9]\\d{8}$"
+          },
+          "actif": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdherentResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Adherent"
+          }
+        }
+      },
+      "AdherentListResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Adherent"
+            }
+          }
+        }
+      },
+      "Film": {
+        "type": "object",
+        "required": [
+          "id",
+          "titre",
+          "realisateur",
+          "annee",
+          "dureeMinutes",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "titre": {
+            "type": "string",
+            "example": "La Cite des enfants perdus"
+          },
+          "realisateur": {
+            "type": "string",
+            "example": "Jean-Pierre Jeunet"
+          },
+          "annee": {
+            "type": "integer",
+            "example": 1995
+          },
+          "dureeMinutes": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 112
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FilmListResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Film"
+            }
+          }
+        }
+      },
+      "FilmStats": {
+        "type": "object",
+        "required": [
+          "filmId",
+          "noteMoyenne",
+          "nbAvis",
+          "meilleureNote"
+        ],
+        "properties": {
+          "filmId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "titre": {
+            "type": "string",
+            "example": "La Cite des enfants perdus"
+          },
+          "annee": {
+            "type": "integer",
+            "example": 1995
+          },
+          "noteMoyenne": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 5,
+            "example": 4.6
+          },
+          "nbAvis": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 12
+          },
+          "meilleureNote": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "example": 5
+          }
+        }
+      },
+      "FilmStatsListResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilmStats"
+            }
+          }
+        }
+      },
+      "AvisPhoto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500,
+            "example": "https://example.com/photos/salle.jpg"
+          },
+          "legende": {
+            "type": "string",
+            "maxLength": 120,
+            "example": "Projection en plein air"
+          }
+        }
+      },
+      "AvisEmbeddedFilm": {
+        "type": "object",
+        "required": [
+          "id",
+          "titre",
+          "annee"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "titre": {
+            "type": "string"
+          },
+          "annee": {
+            "type": "integer"
+          }
+        }
+      },
+      "AvisStatut": {
+        "type": "string",
+        "enum": [
+          "publie",
+          "modere",
+          "masque"
+        ],
+        "example": "publie"
+      },
+      "Avis": {
+        "type": "object",
+        "required": [
+          "id",
+          "adherentId",
+          "filmId",
+          "note",
+          "tags",
+          "photos",
+          "statut",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$",
+            "example": "665f1c2a4c4f9f0012a0abcd"
+          },
+          "adherentId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "filmId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "film": {
+            "$ref": "#/components/schemas/AvisEmbeddedFilm"
+          },
+          "note": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "example": 5
+          },
+          "commentaire": {
+            "type": "string",
+            "maxLength": 2000,
+            "example": "Tres bonne seance."
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "example": [
+              "ambiance",
+              "projection"
+            ]
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/AvisPhoto"
+            }
+          },
+          "slug": {
+            "type": "string",
+            "example": "tres-bonne-seance"
+          },
+          "statut": {
+            "$ref": "#/components/schemas/AvisStatut"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAvisInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "adherentId",
+          "note"
+        ],
+        "properties": {
+          "adherentId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "note": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "example": 5
+          },
+          "commentaire": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            }
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/AvisPhoto"
+            }
+          },
+          "statut": {
+            "$ref": "#/components/schemas/AvisStatut"
+          }
+        }
+      },
+      "UpdateAvisInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "note": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "commentaire": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 30
+            }
+          },
+          "photos": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/AvisPhoto"
+            }
+          },
+          "statut": {
+            "$ref": "#/components/schemas/AvisStatut"
+          }
+        }
+      },
+      "AvisResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Avis"
+          }
+        }
+      },
+      "AvisListResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Avis"
+            }
+          }
+        }
+      },
+      "CreateReservationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "adherentId",
+          "seanceId",
+          "montantCents"
+        ],
+        "properties": {
+          "adherentId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "seanceId": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "montantCents": {
+            "type": "integer",
+            "example": 1200
+          }
+        }
+      },
+      "Reservation": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 42
+          }
+        }
+      },
+      "ReservationResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Reservation"
+          }
+        }
+      },
+      "ArchiveOldSeancesInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "avant"
+        ],
+        "properties": {
+          "avant": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-06-16"
+          }
+        }
+      },
+      "ArchivedSeancesResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "archivedCount"
+            ],
+            "properties": {
+              "archivedCount": {
+                "type": "integer",
+                "minimum": 0,
+                "example": 8
+              }
+            }
+          }
+        }
+      },
+      "AdminStatsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "example": "protected"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
