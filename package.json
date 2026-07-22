@@ -23,7 +23,7 @@
     "test:db": "ts-node src/index.ts"
   },
   "dependencies": {
-    "body-parser": "^2.2.2",
+    "body-parser": "^2.3.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "ioredis": "^5.10.1",
